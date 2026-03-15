@@ -1,7 +1,7 @@
 import sqlite3
 
 def get_connection():
-    conn = sqlite3.connect('D:\daily-task-tracker\database/tasks.db')
+    conn = sqlite3.connect('D:/daily-task-tracker/database/tasks.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -35,11 +35,12 @@ def insert_task(description, task_type, priority_section, due_date, due_time):
     conn = get_connection()
     c = conn.cursor()
     c.execute("INSERT INTO tasks (description, task_type, priority_section, due_date, due_time) VALUES (?, ?, ?, ?, ?)",
-    (description, task_type, priority_section, due_date, due_time)
+    (description, task_type, priority_section, str(due_date), str(due_time))
     )
     print("Task added")
     conn.commit()
     conn.close()
+    return c.lastrowid
 
 def fetch_tasks():
     conn = get_connection()
@@ -61,9 +62,73 @@ def drop_table():
     conn.commit()
     conn.close()
 
-if __name__ == "__main__":
-   init_db()
-   insert_task("Submit report", "office", "immediate_urgent","2026-03-14", "14:00")
-   fetch_tasks()
-    # drop_table()
+def get_task_by_id(task_id):
+    conn = get_connection()
+    cursor = conn.cursor()
 
+    row = cursor.execute(
+        "SELECT * FROM tasks WHERE id = ?",
+        (task_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if row is None:
+        return None
+
+    return dict(row)
+
+
+def update_task(task_id, description, task_type, priority_section, due_date, due_time):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE tasks
+        SET description = ?,
+            task_type = ?,
+            priority_section = ?,
+            due_date = ?,
+            due_time = ?
+        WHERE id = ?
+    """, (
+        description,
+        task_type,
+        priority_section,
+        str(due_date),
+        str(due_time),
+        task_id
+    ))
+
+    conn.commit()
+    updated_count = cursor.rowcount
+    conn.close()
+
+    return updated_count
+
+def complete_task(task_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE tasks
+        SET completed = 1,
+            completed_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (task_id,))
+
+    conn.commit()
+    updated_count = cursor.rowcount
+    conn.close()
+
+    return updated_count
+
+def delete_task(task_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+
+    conn.commit()
+    deleted_count = cursor.rowcount
+    conn.close()
+    return deleted_count
