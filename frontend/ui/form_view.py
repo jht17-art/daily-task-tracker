@@ -18,7 +18,7 @@ def build_task_form(on_add_click,on_input_change,page):
     )
     def handle_date_change(e):
         if e.control.value:
-            due_date_text.value = e.control.value.strftime("%Y-%m-%d")
+            due_date_text.value = e.control.value.astimezone().date().isoformat()
             page.update()
 
     def handle_time_change(e):
@@ -29,8 +29,8 @@ def build_task_form(on_add_click,on_input_change,page):
     today = datetime.datetime.now()
 
     date_picker = ft.DatePicker(
-        first_date=datetime.datetime(today.year - 1, 1, 1),
-        last_date=datetime.datetime(today.year + 1, 12, 31),
+        first_date=datetime.date(today.year - 1, 1, 1),
+        last_date=datetime.date(today.year + 1, 12, 31),
         on_change=handle_date_change,
     )
     time_picker = ft.TimePicker(
@@ -43,7 +43,7 @@ def build_task_form(on_add_click,on_input_change,page):
     def open_time_picker(e):
         page.show_dialog(time_picker)
         
-    add_button = ft.ElevatedButton("Add Task", on_click=on_add_click)
+    add_button = ft.ElevatedButton("Add Task", on_click=on_add_click, bgcolor=ft.Colors.GREY)
     pick_date_button = ft.ElevatedButton("Pick Due Date", on_click=open_date_picker)
     pick_time_button = ft.ElevatedButton("Pick Due Time", on_click=open_time_picker)
     return {
@@ -85,5 +85,6 @@ def build_task_form(on_add_click,on_input_change,page):
         "task_type_field" : task_type_field,
         "priority_dropdown" : priority_dropdown,
         "due_date_text" : due_date_text,
-        "due_time_text" : due_time_text
+        "due_time_text" : due_time_text,
+        "add_button": add_button
     }
