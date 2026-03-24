@@ -1,7 +1,9 @@
 import flet as ft
+import datetime
 from ui.form_view import build_task_form
 from ui.task_list_view import build_task_list
 from services.task_service import fetch_tasks_from_api, create_task_in_api, complete_task_in_api, update_task_in_api, delete_task_in_api
+from ui.daily_task_view import build_daily_task_view
 
 def main(page: ft.Page):
     page.title = "Daily Task Tracker App"
@@ -10,6 +12,21 @@ def main(page: ft.Page):
     message_text = ft.Text("")
     task_list_container = ft.Column()
     form_parts = {}
+    selected_date = datetime.date.today()
+    daily_task_container = ft.Column()
+    def get_task_for_selected_date(tasks, selected_date):
+        selected_date_str = selected_date.isoformat()
+        filtered_tasks = [task for task in tasks if task["due_date"] == selected_date_str and task["completed"] == 0]
+        filtered_tasks.sort(key=lambda task: task["due_time"])
+        return filtered_tasks
+    def show_previous_day(e):
+       nonlocal selected_date
+       selected_date = selected_date - datetime.timedelta(days=1)
+       load_tasks() 
+    def show_next_day(e):
+       nonlocal selected_date
+       selected_date = selected_date + datetime.timedelta(days=1)
+       load_tasks() 
     def handle_complete_task(task_id):
         try:
             complete_task_in_api(task_id)
@@ -43,17 +60,19 @@ def main(page: ft.Page):
         form_parts["add_button"].bgcolor = ft.Colors.ORANGE
         message_text.value = f"Editing task #{task['id']}"
         message_text.color = ft.Colors.BLUE
-        # print("Edit handler called")
-        # print("Before:", form_parts["add_button"].text)
-        # form_parts["add_button"].text = "Update Task"
-        # form_parts["add_button"].bgcolor = ft.Colors.ORANGE
-        # print("After:", form_parts["add_button"].text)
         page.update()
     def load_tasks():
         try:
             tasks = fetch_tasks_from_api()
             task_list_container.controls.clear()
             task_list_container.controls.append(build_task_list(tasks, handle_complete_task, handle_edit_task, handle_delete_task))
+            daily_tasks = get_task_for_selected_date(tasks, selected_date)
+            daily_task_container.controls.clear()
+            daily_task_container.controls.append(
+                build_daily_task_view(
+                    selected_date, daily_tasks, handle_complete_task, handle_edit_task, handle_delete_task, show_previous_day, show_next_day
+                )
+            )
         except Exception as e:
             task_list_container.controls.clear()
             task_list_container.controls.append(ft.Text("Failed to load tasks"))
@@ -138,6 +157,8 @@ def main(page: ft.Page):
         ft.Text("Daily Task Tracker", size=28, weight=ft.FontWeight.BOLD),
         form_section,
         message_text,
+        ft.Divider(),
+        daily_task_container,
         ft.Divider(),
         task_list_container
     )
