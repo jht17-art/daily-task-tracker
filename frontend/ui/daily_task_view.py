@@ -3,9 +3,9 @@ from ui.task_card import build_task_card
 
 def build_daily_task_view(selected_date, tasks, on_complete, on_edit, on_delete, on_previous_day, on_next_day):
     header = ft.Row(
-        [ft.ElevatedButton("Previous Day", on_click=on_previous_day),
+        [ft.Button("Previous Day", on_click=on_previous_day),
          ft.Text(f"Daily Tasks - {selected_date.isoformat()}",size=22, weight=ft.FontWeight.BOLD),
-         ft.ElevatedButton("Next Day", on_click=on_next_day)  
+         ft.Button("Next Day", on_click=on_next_day)  
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
     )

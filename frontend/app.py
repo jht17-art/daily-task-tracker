@@ -47,20 +47,151 @@ def main(page: ft.Page):
             message_text.value = f"Could not delete task: {e}"
             message_text.color = ft.Colors.RED
             page.update()
-    editing_task_id  = None
+    
+    def open_edit_dialog(task):
+        if task["completed"] == 1:
+            message_text.value = "Completed tasks cannot be edited"
+            message_text.color = ft.Colors.RED
+            page.update()
+            return
+
+        edit_description = ft.TextField(label="Description", value=task["description"], width=400)
+        edit_task_type = ft.TextField(label="Task Type", value=task["task_type"], width=400)
+
+        edit_priority = ft.Dropdown(
+            label="Priority Section",
+            width=400,
+            value=task["priority_section"],
+            options=[
+                ft.dropdown.Option("immediate_urgent"),
+                ft.dropdown.Option("immediate_not_urgent"),
+                ft.dropdown.Option("not_immediate_urgent"),
+                ft.dropdown.Option("not_immediate_not_urgent"),
+            ]
+        )
+
+        edit_due_date = ft.Text(task["due_date"], size=16)
+        edit_due_time = ft.Text(task["due_time"], size=16)
+        def handle_edit_date_change(e):
+            if e.control.value:
+                edit_due_date.value = e.control.value.astimezone().date().isoformat()
+                page.update()
+        def handle_edit_time_change(e):
+            if e.control.value:
+                edit_due_time.value = e.control.value.strftime("%H:%M:%S")
+                page.update()
+        edit_date_picker = ft.DatePicker(
+            on_change=handle_edit_date_change
+        )
+
+        edit_time_picker = ft.TimePicker(
+            on_change=handle_edit_time_change
+        )
+        def open_edit_date_picker(e):
+            page.show_dialog(edit_date_picker)
+
+        def open_edit_time_picker(e):
+            page.show_dialog(edit_time_picker)
+        pick_edit_date_button = ft.Button("Pick Due Date", on_click=open_edit_date_picker)
+        pick_edit_time_button = ft.Button("Pick Due Time", on_click=open_edit_time_picker)
+        
+        def close_dialog(e):
+            page.pop_dialog()
+        def submit_edit(e):
+            try:
+                updated_task_data = {
+                    "description": edit_description.value.strip(),
+                    "task_type": edit_task_type.value.strip(),
+                    "priority_section": edit_priority.value,
+                    "due_date": edit_due_date.value,
+                    "due_time": edit_due_time.value,
+                }
+
+                if not updated_task_data["description"]:
+                    message_text.value = "Description is required"
+                    message_text.color = ft.Colors.RED
+                    page.update()
+                    return
+
+                if not updated_task_data["task_type"]:
+                    message_text.value = "Task type is required"
+                    message_text.color = ft.Colors.RED
+                    page.update()
+                    return
+
+                if not updated_task_data["priority_section"]:
+                    message_text.value = "Please select a priority"
+                    message_text.color = ft.Colors.RED
+                    page.update()
+                    return
+
+                if not edit_due_date.value:
+                    message_text.value = "Please select a due date"
+                    message_text.color = ft.Colors.RED
+                    page.update()
+                    return
+
+                if not edit_due_time.value:
+                    message_text.value = "Please select a due time"
+                    message_text.color = ft.Colors.RED
+                    page.update()
+                    return
+                
+                
+                update_task_in_api(task["id"], updated_task_data)
+
+                message_text.value = "Task updated successfully"
+                message_text.color = ft.Colors.GREEN
+
+                page.pop_dialog()
+                load_tasks()
+
+            except Exception as e:
+                message_text.value = f"Task couldn't be updated: {e}"
+                message_text.color = ft.Colors.RED
+                page.update()
+        edit_dialog = ft.AlertDialog(
+                modal=True,
+                title=ft.Text("Edit Task"),
+                content=ft.Column(
+                    [
+                        edit_description,
+                        edit_task_type,
+                        edit_priority,
+                        ft.Row([
+                            ft.Container(
+                                content=edit_due_date,
+                                width=300,
+                                padding=10,
+                                border=ft.Border.all(1),
+                                border_radius=8,
+                            ),
+                            pick_edit_date_button
+                        ], spacing=10),
+                        ft.Row([
+                            ft.Container(
+                                content=edit_due_time,
+                                width=300,
+                                padding=10,
+                                border=ft.Border.all(1),
+                                border_radius=8,
+                            ),
+                            pick_edit_time_button
+                        ], spacing=10)
+                    ],
+                    tight=True,
+                    spacing=10,
+                ),
+                actions=[
+                    ft.TextButton("Cancel", on_click=close_dialog),
+                    ft.Button("Update Task", on_click=submit_edit),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+
+        page.show_dialog(edit_dialog)
     def handle_edit_task(task):
-        nonlocal editing_task_id
-        editing_task_id = task["id"]
-        form_parts["description_field"].value = task["description"]
-        form_parts["task_type_field"].value = task["task_type"]
-        form_parts["priority_dropdown"].value = task["priority_section"]
-        form_parts["due_date_text"].value = task["due_date"]
-        form_parts["due_time_text"].value = task["due_time"]
-        form_parts["add_button"].content = "Update Task"
-        form_parts["add_button"].bgcolor = ft.Colors.ORANGE
-        message_text.value = f"Editing task #{task['id']}"
-        message_text.color = ft.Colors.BLUE
-        page.update()
+       open_edit_dialog(task)
     def load_tasks():
         try:
             tasks = fetch_tasks_from_api()
@@ -83,7 +214,6 @@ def main(page: ft.Page):
         message_text.value=""
         page.update()
     def handle_add_task(e):
-        nonlocal editing_task_id
         try:
             description= form_parts["description_field"].value.strip()
             task_type = form_parts["task_type_field"].value.strip()
@@ -127,15 +257,10 @@ def main(page: ft.Page):
                 "due_date": due_date,
                 "due_time": due_time
             } 
-            if editing_task_id is None:
-                create_task_in_api(task_data)
-                message_text.value = "Task added successfully"
-            else:
-                update_task_in_api(editing_task_id, task_data)
-                message_text.value = "Task updated successfully"
+            create_task_in_api(task_data)
+            message_text.value = "Task added successfully"
 
             message_text.color = ft.Colors.GREEN
-            editing_task_id = None
             form_parts["add_button"].content = "Add Task"
             form_parts["add_button"].bgcolor = ft.Colors.GREY
             form_parts["description_field"].value = ""
@@ -145,10 +270,7 @@ def main(page: ft.Page):
             form_parts["due_time_text"].value = "No time selected"
             load_tasks()
         except Exception as e:
-            if editing_task_id is None:
-                message_text.value = f"Task couldn't be added: {e}"
-            else:
-                message_text.value = f"Task couldn't be updated: {e}"
+            message_text.value = f"Task couldn't be added: {e}"
             message_text.color = ft.Colors.RED
             page.update()
     form_parts = build_task_form(handle_add_task,clear_message,page)
@@ -163,4 +285,5 @@ def main(page: ft.Page):
         task_list_container
     )
     load_tasks()
+    
 ft.run(main)

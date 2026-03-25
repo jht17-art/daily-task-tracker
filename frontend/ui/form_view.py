@@ -43,9 +43,9 @@ def build_task_form(on_add_click,on_input_change,page):
     def open_time_picker(e):
         page.show_dialog(time_picker)
         
-    add_button = ft.ElevatedButton("Add Task", on_click=on_add_click, bgcolor=ft.Colors.GREY)
-    pick_date_button = ft.ElevatedButton("Pick Due Date", on_click=open_date_picker)
-    pick_time_button = ft.ElevatedButton("Pick Due Time", on_click=open_time_picker)
+    add_button = ft.Button("Add Task", on_click=on_add_click, bgcolor=ft.Colors.GREY)
+    pick_date_button = ft.Button("Pick Due Date", on_click=open_date_picker)
+    pick_time_button = ft.Button("Pick Due Time", on_click=open_time_picker)
     return {
         "form" : ft.Column([
         ft.Text("Add Task", size=22, weight= ft.FontWeight.BOLD),
@@ -58,7 +58,7 @@ def build_task_form(on_add_click,on_input_change,page):
                     content=due_date_text,
                     width=380,
                     padding=10,
-                    border=ft.border.all(1),
+                    border=ft.Border.all(1),
                     border_radius=8,
                 ),
                 pick_date_button,
@@ -72,7 +72,7 @@ def build_task_form(on_add_click,on_input_change,page):
                     content=due_time_text,
                     width=380,
                     padding=10,
-                    border=ft.border.all(1),
+                    border=ft.Border.all(1),
                     border_radius=8,
                 ),
                 pick_time_button,

@@ -12,7 +12,6 @@ def fetch_tasks_from_api():
 def create_task_in_api(task_data):
     try:    
         response = requests.post(TASKS_URL, json=task_data)
-        print("Received due_date in backend:", task_data["due_date"])
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
