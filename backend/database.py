@@ -1,7 +1,12 @@
+from pathlib import Path
+import os
 import sqlite3
 
+APP_DATA_DIR = Path(os.environ.get("FLET_APP_STORAGE_DATA", Path(__file__).resolve().parent))
+DB_PATH = APP_DATA_DIR / "tasks.db"
+
 def get_connection():
-    conn = sqlite3.connect('D:/daily-task-tracker/database/tasks.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 

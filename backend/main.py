@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from datetime import date, time, datetime
-from database import init_db, fetch_tasks, insert_task,  update_task, complete_task,delete_task,get_task_by_id
-from schemas import TaskCreate, TaskUpdate, TaskResponse
+from backend.database import init_db, fetch_tasks, insert_task,  update_task, complete_task,delete_task,get_task_by_id
+from backend.schemas import TaskCreate, TaskUpdate, TaskResponse
 
 app = FastAPI()
 
