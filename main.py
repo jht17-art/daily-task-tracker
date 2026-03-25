@@ -2,11 +2,11 @@ import flet as ft
 import datetime
 import threading
 import time
-from ui.form_view import build_task_form
-from ui.task_list_view import build_task_list
-from services.task_service import fetch_tasks_from_api, create_task_in_api, complete_task_in_api, update_task_in_api, delete_task_in_api
-from ui.daily_task_view import build_daily_task_view
-from backend_launcher import ensure_backend_running
+from frontend.ui.form_view import build_task_form
+from frontend.ui.task_list_view import build_task_list
+from frontend.services.task_service import fetch_tasks_from_api, create_task_in_api, complete_task_in_api, update_task_in_api, delete_task_in_api
+from frontend.ui.daily_task_view import build_daily_task_view
+from frontend.backend_launcher import ensure_backend_running
 
 def main(page: ft.Page):
     page.title = "Daily Task Tracker App"

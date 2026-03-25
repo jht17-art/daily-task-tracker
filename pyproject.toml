@@ -1,0 +1,16 @@
+[project]
+name = "daily_task_tracker"
+version = "0.1.0"
+description = "Daily Task Tracker desktop app"
+requires-python = ">=3.10"
+dependencies = [
+  "flet",
+  "fastapi",
+  "uvicorn",
+  "requests"
+]
+
+[tool.flet]
+product = "Daily Task Tracker"
+company = "Noaria Nonai"
+copyright = "Copyright (C) 2026"
